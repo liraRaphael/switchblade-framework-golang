@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 	"github.com/liraRaphael/golang-api-lib/util"
 )
@@ -17,52 +16,52 @@ const (
 )
 
 type Server struct {
-	Router *gin.Engine
+	router *fiber.App
 
-	Profile string
-	Port    string
+	profile string
+	port    string
 
-	HealthCheckActive bool
-	HealthCheckUrl    string
+	healthCheckActive bool
+	healthCheckUrl    string
 }
 
 func Init() *Server {
 	server := &Server{
-		Router: gin.Default(),
+		router: fiber.New(),
 	}
 
 	var envs []string
 	envs = append(envs, envDefault)
 
 	server.loadEnvs(envDefault)
-	if len(strings.TrimSpace(server.Profile)) > 0 {
-		server.loadEnvs(envDefault, fmt.Sprintf(envFormat, server.Profile))
+	if len(strings.TrimSpace(server.profile)) > 0 {
+		server.loadEnvs(envDefault, fmt.Sprintf(envFormat, server.profile))
 	}
 
 	return server
 }
 
 func (s *Server) Run() {
-	if s.HealthCheckActive {
+	if s.healthCheckActive {
 		s.healthCheck()
 	}
 
-	s.Router.Run(fmt.Sprintf(anddressFormat, s.Port))
+	s.router.Listen(fmt.Sprintf(anddressFormat, s.port))
 }
 
 func (s *Server) loadEnvs(paths ...string) {
 	godotenv.Load(paths...)
 
-	s.Profile = strings.ToLower(util.GetEnvValue("application.profile"))
-	s.Port = util.GetEnvValueOrDefault("application.port", "8080")
+	s.profile = strings.ToLower(util.GetEnvValue("application.profile"))
+	s.port = util.GetEnvValueOrDefault("application.port", "8080")
 
-	s.HealthCheckActive = util.StringToBool(util.GetEnvValueOrDefault("application.healthcheck.active", "true"))
-	s.HealthCheckUrl = util.GetEnvValueOrDefault("application.healthcheck.url", "/health/check")
+	s.healthCheckActive = util.StringToBool(util.GetEnvValueOrDefault("application.healthcheck.active", "true"))
+	s.healthCheckUrl = util.GetEnvValueOrDefault("application.healthcheck.url", "/health/check")
 }
 
 func (s *Server) healthCheck() {
-	s.Router.GET(s.HealthCheckUrl, func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{
+	s.router.Get(s.healthCheckUrl, func(ctx *fiber.Ctx) error {
+		return ctx.JSON(fiber.Map{
 			"status": "ok",
 		})
 	})
