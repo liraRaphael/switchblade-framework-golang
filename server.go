@@ -1,13 +1,13 @@
 package main
 
 import (
-	"birord/server/util"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/liraRaphael/golang-api-lib/util"
 )
 
 const (
