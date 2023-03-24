@@ -5,7 +5,7 @@ import (
 )
 
 func StringToBool(value string) bool {
-	final, err := strconv.ParseBool(GetEnvValueOrDefault("application.healthcheck.active", "true"))
+	final, err := strconv.ParseBool(value)
 
 	if err != nil {
 		return false
