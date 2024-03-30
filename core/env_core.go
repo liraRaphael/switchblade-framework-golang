@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
-	"github.com/liraRaphael/golang-api-lib/src/environment"
-	"github.com/liraRaphael/golang-api-lib/src/util"
+	"github.com/liraRaphael/golang-api-lib/environment"
+	"github.com/liraRaphael/golang-api-lib/util"
 )
 
 const (
