@@ -131,6 +131,6 @@ func (r *Route) DisableDocumentation() *Route {
 	return r
 }
 
-func defineDefaultStatusCode() int {
+func (r *Route) defineDefaultStatusCode() int {
 	return 200
 }
