@@ -1,4 +1,4 @@
-package route
+package server
 
 // func (s *Server) healthCheck() {
 // 	s.router.Get(s.healthCheckUrl, func(ctx *fiber.Ctx) error {

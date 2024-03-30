@@ -1,4 +1,4 @@
-package route
+package server
 
 func (r *Route) BuildRoute() *Route {
 

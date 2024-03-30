@@ -1,4 +1,6 @@
-package route
+package server
+
+import "strings"
 
 type RouteBuilder interface {
 	AddRoute(endpoint, method string) *Route
@@ -26,7 +28,25 @@ type RouteBuilder interface {
 	BuildRoute() *Route
 }
 
+func isMethodEquals(methodOrigin, methodTarget string) bool {
+	return strings.ToLower(methodOrigin) == strings.ToLower(methodTarget)
+}
+
 func (r *Route) AddRoute(endpoint, method string) *Route {
+	r.Endpoint = endpoint
+	r.Method = method
+
+	r.EnableValidator.RequestBody = true
+	r.EnableValidator.RequestHeaders = true
+	r.EnableValidator.Path = true
+	r.EnableValidator.Queries = true
+
+	r.HttpSuccess = 0
+
+	r.Documentation.IsEnable = false
+	r.Documentation.Summary = ""
+	r.Documentation.Description = ""
+	r.Documentation.OperationId = ""
 
 	return r
 }
@@ -111,7 +131,6 @@ func (r *Route) DisableDocumentation() *Route {
 	return r
 }
 
-func (r *Route) BuildRoute() *Route {
-
-	return r
+func defineDefaultStatusCode() int {
+	return 200
 }

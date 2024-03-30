@@ -1,8 +1,4 @@
-package route
-
-import (
-	"github.com/liraRaphael/golang-api-lib/core"
-)
+package server
 
 type BaseRequest struct {
 	Body    interface{}
@@ -10,9 +6,12 @@ type BaseRequest struct {
 }
 
 type Route struct {
-	Server *core.Server
+	Server *Server
 
 	HttpSuccess int
+
+	Endpoint string
+	Method   string
 
 	Request struct {
 		BaseRequest
@@ -37,6 +36,14 @@ type Route struct {
 		Description string
 		OperationId string
 	}
+}
+
+func (s *Server) InitRoute() *Route {
+	// if s.healthCheckActive {
+	// 	s.healthCheck()
+	// }
+
+	return &Route{Server: s}
 }
 
 // ToDo: Criar interface para os builder
