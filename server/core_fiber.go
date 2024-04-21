@@ -17,7 +17,7 @@ const (
 )
 
 type Server struct {
-	router *fiber.App
+	ctx *fiber.App
 
 	profile string
 	port    string
@@ -32,7 +32,7 @@ type Server struct {
 
 func Init() *Server {
 	server := &Server{
-		router: fiber.New(),
+		ctx: fiber.New(),
 	}
 
 	return server
@@ -41,7 +41,7 @@ func Init() *Server {
 func (s *Server) Run() {
 	s.InitEnvs()
 
-	s.router.Listen(fmt.Sprintf(anddressFormat, s.port))
+	s.ctx.Listen(fmt.Sprintf(anddressFormat, s.port))
 }
 
 func (s *Server) loadEnvs(paths ...string) {

@@ -1,17 +1,21 @@
 package server
 
-import "maps"
+import (
+	"maps"
 
-type RouteBuilder interface {
+	"github.com/gofiber/fiber/v2"
+)
+
+type RouteBuilder[BReq, BResp, HReq, HResp, P, Q any] interface {
 	AddRoute(endpoint, method string) *Route
 
-	RequestBody(body interface{}) *Route
-	RequestHeaders(headers interface{}) *Route
-	Path(path interface{}) *Route
-	Queries(queries interface{}) *Route
+	RequestBody(body BReq) *Route
+	RequestHeaders(headers HReq) *Route
+	Path(path P) *Route
+	Queries(queries Q) *Route
 
-	ResponseBody(body interface{}) *Route
-	ResponseHeaders(headers interface{}) *Route
+	ResponseBody(body BResp) *Route
+	ResponseHeaders(headers HResp) *Route
 
 	EnableValidatorRequestBody() *Route
 	EnableValidatorRequestHeaders() *Route
@@ -25,7 +29,7 @@ type RouteBuilder interface {
 	EnableDocumentation(summary, description, operationId string) *Route
 	DisableDocumentation() *Route
 
-	ExceptionHandleValidation(err interface{}, callback func(report interface{})) *Route
+	ExceptionHandleValidation(err error, callback func(report any)) *Route
 
 	ListenRoute() *Route
 	AndServer() *Server
@@ -35,10 +39,10 @@ func (r *Route) AddRoute(endpoint, method string) *Route {
 	r.Endpoint = endpoint
 	r.Method = method
 
-	r.EnableValidator.RequestBody = true
-	r.EnableValidator.RequestHeaders = true
-	r.EnableValidator.Path = true
-	r.EnableValidator.Queries = true
+	r.Validator.RequestBody = true
+	r.Validator.RequestHeaders = true
+	r.Validator.Path = true
+	r.Validator.Queries = true
 
 	r.Documentation.IsEnable = false
 	r.Documentation.Summary = ""
@@ -48,86 +52,86 @@ func (r *Route) AddRoute(endpoint, method string) *Route {
 	return r
 }
 
-func (r *Route) RequestBody(body interface{}) *Route {
+func (r *Route) RequestBody(body any) *Route {
 	r.Request.Body = body
 
 	return r
 }
 
-func (r *Route) RequestHeaders(headers interface{}) *Route {
+func (r *Route) RequestHeaders(headers any) *Route {
 	r.Request.Headers = headers
 
 	return r
 }
 
-func (r *Route) Path(path interface{}) *Route {
+func (r *Route) Path(path any) *Route {
 	r.Request.Path = path
 
 	return r
 }
 
-func (r *Route) Queries(queries interface{}) *Route {
+func (r *Route) Queries(queries any) *Route {
 	r.Request.Queries = queries
 
 	return r
 }
 
-func (r *Route) ResponseBody(body interface{}) *Route {
+func (r *Route) ResponseBody(body any) *Route {
 	r.Response.Body = body
 
 	return r
 }
 
-func (r *Route) ResponseHeaders(headers interface{}) *Route {
+func (r *Route) ResponseHeaders(headers any) *Route {
 	r.Response.Headers = headers
 
 	return r
 }
 
 func (r *Route) EnableValidatorRequestBody() *Route {
-	r.EnableValidator.RequestBody = true
+	r.Validator.RequestBody = true
 
 	return r
 }
 
 func (r *Route) EnableValidatorRequestHeaders() *Route {
-	r.EnableValidator.RequestHeaders = true
+	r.Validator.RequestHeaders = true
 
 	return r
 }
 
 func (r *Route) EnableValidatorPath() *Route {
-	r.EnableValidator.Path = true
+	r.Validator.Path = true
 
 	return r
 }
 
 func (r *Route) EnableValidatorQueries() *Route {
-	r.EnableValidator.Queries = true
+	r.Validator.Queries = true
 
 	return r
 }
 
 func (r *Route) DisableValidatorRequestBody() *Route {
-	r.EnableValidator.RequestBody = false
+	r.Validator.RequestBody = false
 
 	return r
 }
 
 func (r *Route) DisableValidatorRequestHeaders() *Route {
-	r.EnableValidator.RequestHeaders = false
+	r.Validator.RequestHeaders = false
 
 	return r
 }
 
 func (r *Route) DisableValidatorPath() *Route {
-	r.EnableValidator.Path = false
+	r.Validator.Path = false
 
 	return r
 }
 
 func (r *Route) DisableValidatorQueries() *Route {
-	r.EnableValidator.Queries = false
+	r.Validator.Queries = false
 
 	return r
 }
@@ -150,20 +154,23 @@ func (r *Route) DisableDocumentation() *Route {
 	return r
 }
 
-func (r *Route) AddExceptionHandle(err interface{}, callback func(report interface{})) *Route {
+func (r *Route) AddExceptionHandle(err error, callback func(report any)) *Route {
 	r.ExceptionHandler[err] = callback
 
 	return r
 }
 
-func (r *Route) AddExceptionsHandle(handles map[interface{}]func(report interface{})) *Route {
+func (r *Route) AddExceptionsHandle(handles map[error]func(report any)) *Route {
 	maps.Copy(handles, r.ExceptionHandler)
 
 	return r
 }
 
 func (r *Route) ListenRoute() *Route {
-	//ToDo: Colocar as rotas para serem ouvidas pelo fiber
+	r.Server.ctx.Add(r.Method, r.Endpoint, func(c *fiber.Ctx) error {
+		return nil
+	})
+
 	return r.Server.NewRoute()
 }
 

@@ -1,8 +1,34 @@
 package server
 
-type BaseRequest struct {
-	Body    interface{}
-	Headers interface{}
+type BaseRequest[B, H any] struct {
+	Body    B
+	Headers H
+}
+
+type Response[B, H any] struct {
+	BaseRequest[B, H]
+}
+
+type Request[B, H, P, Q any] struct {
+	BaseRequest[B, H]
+
+	Path    P
+	Queries Q
+}
+
+type Validator struct {
+	RequestBody    bool
+	RequestHeaders bool
+	Path           bool
+	Queries        bool
+}
+
+type Documentation struct {
+	IsEnable bool
+
+	Summary     string
+	Description string
+	OperationId string
 }
 
 type Route struct {
@@ -13,29 +39,12 @@ type Route struct {
 
 	Callback func(request RestRequest[any, any, any, any]) (RestResponse[any, any], error)
 
-	ExceptionHandler map[interface{}]func(report interface{})
+	ExceptionHandler map[error]func(report any)
 
-	Request struct {
-		BaseRequest
+	Request  Request[any, any, any, any]
+	Response Response[any, any]
 
-		Path    interface{}
-		Queries interface{}
-	}
+	Validator Validator
 
-	Response BaseRequest
-
-	EnableValidator struct {
-		RequestBody    bool
-		RequestHeaders bool
-		Path           bool
-		Queries        bool
-	}
-
-	Documentation struct {
-		IsEnable bool
-
-		Summary     string
-		Description string
-		OperationId string
-	}
+	Documentation Documentation
 }
