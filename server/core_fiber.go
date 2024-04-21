@@ -66,6 +66,10 @@ func (s *Server) AddDefaultExceptionHandle(err error, callback func(report any))
 	return s
 }
 
+func (s *Server) GetContext() *fiber.App {
+	return s.ctx
+}
+
 func (s *Server) InitEnvs() {
 	s.loadEnvs(envDefault)
 
