@@ -25,9 +25,9 @@ type Server struct {
 	healthCheckActive bool
 	healthCheckUrl    string
 
-	defaultHandleUnknowException func(report interface{})
+	defaultHandleUnknowException func(report any)
 
-	defaultExceptionHandler map[interface{}]func(report interface{})
+	defaultExceptionHandler map[error]func(report any)
 }
 
 func Init() *Server {
@@ -60,7 +60,7 @@ func (s *Server) loadCoreEnvs() {
 	s.healthCheckUrl = environment.GetEnvValueOrDefault("HEALTHCHECK_URL", "/health/check")
 }
 
-func (s *Server) AddDefaultExceptionHandle(err interface{}, callback func(report interface{})) *Server {
+func (s *Server) AddDefaultExceptionHandle(err error, callback func(report any)) *Server {
 	s.defaultExceptionHandler[err] = callback
 
 	return s
