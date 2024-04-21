@@ -24,6 +24,10 @@ type Server struct {
 
 	healthCheckActive bool
 	healthCheckUrl    string
+
+	defaultHandleUnknowException func(report interface{})
+
+	defaultExceptionHandler map[interface{}]func(report interface{})
 }
 
 func Init() *Server {
@@ -44,12 +48,22 @@ func (s *Server) loadEnvs(paths ...string) {
 	godotenv.Load(paths...)
 }
 
-func (s *Server) loadCoreEnvs() {
-	s.profile = strings.ToLower(environment.GetEnvValueOrDefault("application.profile", ""))
-	s.port = environment.GetEnvValueOrDefault("application.port", "8080")
+func (s *Server) SetDefaultHandleUnknowException(callback func(report interface{})) {
+	s.defaultHandleUnknowException = callback
+}
 
-	s.healthCheckActive = util.StringToBool(environment.GetEnvValueOrDefault("application.healthcheck.active", "true"))
-	s.healthCheckUrl = environment.GetEnvValueOrDefault("application.healthcheck.url", "/health/check")
+func (s *Server) loadCoreEnvs() {
+	s.profile = strings.ToLower(environment.GetEnvValueOrDefault("ENVRIONMENT", ""))
+	s.port = environment.GetEnvValueOrDefault("PORT", "8080")
+
+	s.healthCheckActive = util.StringToBool(environment.GetEnvValueOrDefault("HEALTHCHECK_ACTIVE", "true"))
+	s.healthCheckUrl = environment.GetEnvValueOrDefault("HEALTHCHECK_URL", "/health/check")
+}
+
+func (s *Server) AddDefaultExceptionHandle(err interface{}, callback func(report interface{})) *Server {
+	s.defaultExceptionHandler[err] = callback
+
+	return s
 }
 
 func (s *Server) InitEnvs() {
