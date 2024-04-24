@@ -37,9 +37,7 @@ type Route struct {
 	Endpoint string
 	Method   string
 
-	Callback func(request RestRequest[any, any, any, any]) (RestResponse[any, any], error)
-
-	ExceptionHandler map[error]func(report any)
+	ExceptionHandler map[error]func(report error)
 
 	Request  Request[any, any, any, any]
 	Response Response[any, any]

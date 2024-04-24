@@ -154,13 +154,13 @@ func (r *Route) DisableDocumentation() *Route {
 	return r
 }
 
-func (r *Route) AddExceptionHandle(err error, callback func(report any)) *Route {
+func (r *Route) AddExceptionHandle(err error, callback func(report error)) *Route {
 	r.ExceptionHandler[err] = callback
 
 	return r
 }
 
-func (r *Route) AddExceptionsHandle(handles map[error]func(report any)) *Route {
+func (r *Route) AddExceptionsHandle(handles map[error]func(report error)) *Route {
 	maps.Copy(handles, r.ExceptionHandler)
 
 	return r
