@@ -7,42 +7,43 @@ import (
 )
 
 type RouteBuilder[BReq, BResp, HReq, HResp, P, Q any] interface {
-	AddRoute(endpoint, method string) *Route
+	AddRoute(endpoint, method string) *Route[BReq, BResp, HReq, HResp, P, Q]
 
-	RequestBody(body BReq) *Route
-	RequestHeaders(headers HReq) *Route
-	Path(path P) *Route
-	Queries(queries Q) *Route
+	RequestBody(body BReq) *Route[BReq, BResp, HReq, HResp, P, Q]
+	RequestHeaders(headers HReq) *Route[BReq, BResp, HReq, HResp, P, Q]
+	Path(path P) *Route[BReq, BResp, HReq, HResp, P, Q]
+	Queries(queries Q) *Route[BReq, BResp, HReq, HResp, P, Q]
 
-	ResponseBody(body BResp) *Route
-	ResponseHeaders(headers HResp) *Route
+	ResponseBody(body BResp) *Route[BReq, BResp, HReq, HResp, P, Q]
+	ResponseHeaders(headers HResp) *Route[BReq, BResp, HReq, HResp, P, Q]
 
-	EnableValidatorRequestBody() *Route
-	EnableValidatorRequestHeaders() *Route
-	EnableValidatorPath() *Route
-	EnableValidatorQueries() *Route
-	DisableValidatorRequestBody() *Route
-	DisableValidatorRequestHeaders() *Route
-	DisableValidatorPath() *Route
-	DisableValidatorQueries() *Route
+	EnableValidatorRequestBody() *Route[BReq, BResp, HReq, HResp, P, Q]
+	EnableValidatorRequestHeaders() *Route[BReq, BResp, HReq, HResp, P, Q]
+	EnableValidatorPath() *Route[BReq, BResp, HReq, HResp, P, Q]
+	EnableValidatorQueries() *Route[BReq, BResp, HReq, HResp, P, Q]
+	DisableValidatorRequestBody() *Route[BReq, BResp, HReq, HResp, P, Q]
+	DisableValidatorRequestHeaders() *Route[BReq, BResp, HReq, HResp, P, Q]
+	DisableValidatorPath() *Route[BReq, BResp, HReq, HResp, P, Q]
+	DisableValidatorQueries() *Route[BReq, BResp, HReq, HResp, P, Q]
 
-	EnableDocumentation(summary, description, operationId string) *Route
-	DisableDocumentation() *Route
+	EnableDocumentation(summary, description, operationId string) *Route[BReq, BResp, HReq, HResp, P, Q]
+	DisableDocumentation() *Route[BReq, BResp, HReq, HResp, P, Q]
 
-	ExceptionHandleValidation(err error, callback func(report any)) *Route
+	ExceptionHandleValidation(err error, callback func(report any)) *Route[BReq, BResp, HReq, HResp, P, Q]
 
-	ListenRoute() *Route
+	ListenRoute() *Route[BReq, BResp, HReq, HResp, P, Q]
+	ListenRawRoute(callback func(c *fiber.Ctx) error) *Route[BReq, BResp, HReq, HResp, P, Q]
 	AndServer() *Server
 }
 
-func (r *Route) AddRoute(endpoint, method string) *Route {
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) AddRoute(endpoint, method string) *Route[BReq, BResp, HReq, HResp, P, Q] {
 	r.Endpoint = endpoint
 	r.Method = method
 
-	r.Validator.RequestBody = true
-	r.Validator.RequestHeaders = true
-	r.Validator.Path = true
-	r.Validator.Queries = true
+	r.Validator.RequestBody.Enable = true
+	r.Validator.RequestHeaders.Enable = true
+	r.Validator.Path.Enable = true
+	r.Validator.Queries.Enable = true
 
 	r.Documentation.IsEnable = false
 	r.Documentation.Summary = ""
@@ -52,91 +53,91 @@ func (r *Route) AddRoute(endpoint, method string) *Route {
 	return r
 }
 
-func (r *Route) RequestBody(body any) *Route {
-	r.Request.Body = body
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) RequestBody(body BReq) *Route[BReq, BResp, HReq, HResp, P, Q] {
+	r.Request.Body = &body
 
 	return r
 }
 
-func (r *Route) RequestHeaders(headers any) *Route {
-	r.Request.Headers = headers
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) RequestHeaders(headers HReq) *Route[BReq, BResp, HReq, HResp, P, Q] {
+	r.Request.Headers = &headers
 
 	return r
 }
 
-func (r *Route) Path(path any) *Route {
-	r.Request.Path = path
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) Path(path P) *Route[BReq, BResp, HReq, HResp, P, Q] {
+	r.Request.Path = &path
 
 	return r
 }
 
-func (r *Route) Queries(queries any) *Route {
-	r.Request.Queries = queries
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) Queries(queries Q) *Route[BReq, BResp, HReq, HResp, P, Q] {
+	r.Request.Queries = &queries
 
 	return r
 }
 
-func (r *Route) ResponseBody(body any) *Route {
-	r.Response.Body = body
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) ResponseBody(body BResp) *Route[BReq, BResp, HReq, HResp, P, Q] {
+	r.Response.Body = &body
 
 	return r
 }
 
-func (r *Route) ResponseHeaders(headers any) *Route {
-	r.Response.Headers = headers
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) ResponseHeaders(headers HResp) *Route[BReq, BResp, HReq, HResp, P, Q] {
+	r.Response.Headers = &headers
 
 	return r
 }
 
-func (r *Route) EnableValidatorRequestBody() *Route {
-	r.Validator.RequestBody = true
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) EnableValidatorRequestBody() *Route[BReq, BResp, HReq, HResp, P, Q] {
+	r.Validator.RequestBody.Enable = true
 
 	return r
 }
 
-func (r *Route) EnableValidatorRequestHeaders() *Route {
-	r.Validator.RequestHeaders = true
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) EnableValidatorRequestHeaders() *Route[BReq, BResp, HReq, HResp, P, Q] {
+	r.Validator.RequestHeaders.Enable = true
 
 	return r
 }
 
-func (r *Route) EnableValidatorPath() *Route {
-	r.Validator.Path = true
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) EnableValidatorPath() *Route[BReq, BResp, HReq, HResp, P, Q] {
+	r.Validator.Path.Enable = true
 
 	return r
 }
 
-func (r *Route) EnableValidatorQueries() *Route {
-	r.Validator.Queries = true
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) EnableValidatorQueries() *Route[BReq, BResp, HReq, HResp, P, Q] {
+	r.Validator.Queries.Enable = true
 
 	return r
 }
 
-func (r *Route) DisableValidatorRequestBody() *Route {
-	r.Validator.RequestBody = false
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DisableValidatorRequestBody() *Route[BReq, BResp, HReq, HResp, P, Q] {
+	r.Validator.RequestBody.Enable = false
 
 	return r
 }
 
-func (r *Route) DisableValidatorRequestHeaders() *Route {
-	r.Validator.RequestHeaders = false
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DisableValidatorRequestHeaders() *Route[BReq, BResp, HReq, HResp, P, Q] {
+	r.Validator.RequestHeaders.Enable = false
 
 	return r
 }
 
-func (r *Route) DisableValidatorPath() *Route {
-	r.Validator.Path = false
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DisableValidatorPath() *Route[BReq, BResp, HReq, HResp, P, Q] {
+	r.Validator.Path.Enable = false
 
 	return r
 }
 
-func (r *Route) DisableValidatorQueries() *Route {
-	r.Validator.Queries = false
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DisableValidatorQueries() *Route[BReq, BResp, HReq, HResp, P, Q] {
+	r.Validator.Queries.Enable = false
 
 	return r
 }
 
-func (r *Route) EnableDocumentation(summary, description, operationId string) *Route {
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) EnableDocumentation(summary, description, operationId string) *Route[BReq, BResp, HReq, HResp, P, Q] {
 	r.Documentation.IsEnable = true
 	r.Documentation.Summary = summary
 	r.Documentation.Description = description
@@ -145,7 +146,7 @@ func (r *Route) EnableDocumentation(summary, description, operationId string) *R
 	return r
 }
 
-func (r *Route) DisableDocumentation() *Route {
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DisableDocumentation() *Route[BReq, BResp, HReq, HResp, P, Q] {
 	r.Documentation.IsEnable = false
 	r.Documentation.Summary = ""
 	r.Documentation.Description = ""
@@ -154,26 +155,26 @@ func (r *Route) DisableDocumentation() *Route {
 	return r
 }
 
-func (r *Route) AddExceptionHandle(err error, callback func(report error)) *Route {
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) AddExceptionHandle(err error, callback func(report error) (RestResponse[any, any], error)) *Route[BReq, BResp, HReq, HResp, P, Q] {
 	r.ExceptionHandler[err] = callback
 
 	return r
 }
 
-func (r *Route) AddExceptionsHandle(handles map[error]func(report error)) *Route {
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) AddExceptionsHandle(handles map[error]func(report error) (RestResponse[any, any], error)) *Route[BReq, BResp, HReq, HResp, P, Q] {
 	maps.Copy(handles, r.ExceptionHandler)
 
 	return r
 }
 
-func (r *Route) ListenRoute() *Route {
-	r.Server.ctx.Add(r.Method, r.Endpoint, func(c *fiber.Ctx) error {
-		return nil
-	})
-
-	return r.Server.NewRoute()
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) ListenRoute(callback func(request RestRequest[BReq, HReq, P, Q]) (RestResponse[BResp, HResp], error)) {
+	r.Server.ctx.Add(r.Method, r.Endpoint, r.DefaultCallbackFiber)
 }
 
-func (r *Route) AndServer() *Server {
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) ListenRawRoute(callback func(c *fiber.Ctx) error) {
+	r.Server.ctx.Add(r.Method, r.Endpoint, callback)
+}
+
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) AndServer() *Server {
 	return r.Server
 }

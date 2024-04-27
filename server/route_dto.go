@@ -1,8 +1,8 @@
 package server
 
 type BaseRequest[B, H any] struct {
-	Body    B
-	Headers H
+	Body    *B
+	Headers *H
 }
 
 type Response[B, H any] struct {
@@ -12,15 +12,20 @@ type Response[B, H any] struct {
 type Request[B, H, P, Q any] struct {
 	BaseRequest[B, H]
 
-	Path    P
-	Queries Q
+	Path    *P
+	Queries *Q
+}
+
+type ValidatorHandle struct {
+	Enable bool
+	Handle func(report error) RestResponse[any, any]
 }
 
 type Validator struct {
-	RequestBody    bool
-	RequestHeaders bool
-	Path           bool
-	Queries        bool
+	RequestBody    ValidatorHandle
+	RequestHeaders ValidatorHandle
+	Path           ValidatorHandle
+	Queries        ValidatorHandle
 }
 
 type Documentation struct {
@@ -31,16 +36,18 @@ type Documentation struct {
 	OperationId string
 }
 
-type Route struct {
+type Route[BReq, BResp, HReq, HResp, P, Q any] struct {
 	Server *Server
 
 	Endpoint string
 	Method   string
 
-	ExceptionHandler map[error]func(report error)
+	Handle func(request RestRequest[BReq, HReq, P, Q]) (RestResponse[any, any], error)
 
-	Request  Request[any, any, any, any]
-	Response Response[any, any]
+	ExceptionHandler map[error]func(report error) (RestResponse[any, any], error)
+
+	Request  Request[BReq, HReq, P, Q]
+	Response Response[BResp, HResp]
 
 	Validator Validator
 
