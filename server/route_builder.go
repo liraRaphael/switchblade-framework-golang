@@ -9,14 +9,6 @@ import (
 type RouteBuilder[BReq, BResp, HReq, HResp, P, Q any] interface {
 	AddRoute(endpoint, method string) *Route[BReq, BResp, HReq, HResp, P, Q]
 
-	RequestBody(body BReq) *Route[BReq, BResp, HReq, HResp, P, Q]
-	RequestHeaders(headers HReq) *Route[BReq, BResp, HReq, HResp, P, Q]
-	Path(path P) *Route[BReq, BResp, HReq, HResp, P, Q]
-	Queries(queries Q) *Route[BReq, BResp, HReq, HResp, P, Q]
-
-	ResponseBody(body BResp) *Route[BReq, BResp, HReq, HResp, P, Q]
-	ResponseHeaders(headers HResp) *Route[BReq, BResp, HReq, HResp, P, Q]
-
 	EnableValidatorRequestBody() *Route[BReq, BResp, HReq, HResp, P, Q]
 	EnableValidatorRequestHeaders() *Route[BReq, BResp, HReq, HResp, P, Q]
 	EnableValidatorPath() *Route[BReq, BResp, HReq, HResp, P, Q]
@@ -39,52 +31,6 @@ type RouteBuilder[BReq, BResp, HReq, HResp, P, Q any] interface {
 func (r *Route[BReq, BResp, HReq, HResp, P, Q]) AddRoute(endpoint, method string) *Route[BReq, BResp, HReq, HResp, P, Q] {
 	r.Endpoint = endpoint
 	r.Method = method
-
-	r.Validator.RequestBody.Enable = true
-	r.Validator.RequestHeaders.Enable = true
-	r.Validator.Path.Enable = true
-	r.Validator.Queries.Enable = true
-
-	r.Documentation.IsEnable = false
-	r.Documentation.Summary = ""
-	r.Documentation.Description = ""
-	r.Documentation.OperationId = ""
-
-	return r
-}
-
-func (r *Route[BReq, BResp, HReq, HResp, P, Q]) RequestBody(body BReq) *Route[BReq, BResp, HReq, HResp, P, Q] {
-	r.Request.Body = &body
-
-	return r
-}
-
-func (r *Route[BReq, BResp, HReq, HResp, P, Q]) RequestHeaders(headers HReq) *Route[BReq, BResp, HReq, HResp, P, Q] {
-	r.Request.Headers = &headers
-
-	return r
-}
-
-func (r *Route[BReq, BResp, HReq, HResp, P, Q]) Path(path P) *Route[BReq, BResp, HReq, HResp, P, Q] {
-	r.Request.Path = &path
-
-	return r
-}
-
-func (r *Route[BReq, BResp, HReq, HResp, P, Q]) Queries(queries Q) *Route[BReq, BResp, HReq, HResp, P, Q] {
-	r.Request.Queries = &queries
-
-	return r
-}
-
-func (r *Route[BReq, BResp, HReq, HResp, P, Q]) ResponseBody(body BResp) *Route[BReq, BResp, HReq, HResp, P, Q] {
-	r.Response.Body = &body
-
-	return r
-}
-
-func (r *Route[BReq, BResp, HReq, HResp, P, Q]) ResponseHeaders(headers HResp) *Route[BReq, BResp, HReq, HResp, P, Q] {
-	r.Response.Headers = &headers
 
 	return r
 }
@@ -138,7 +84,7 @@ func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DisableValidatorQueries() *Route
 }
 
 func (r *Route[BReq, BResp, HReq, HResp, P, Q]) EnableDocumentation(summary, description, operationId string) *Route[BReq, BResp, HReq, HResp, P, Q] {
-	r.Documentation.IsEnable = true
+	r.Documentation.Enable = true
 	r.Documentation.Summary = summary
 	r.Documentation.Description = description
 	r.Documentation.OperationId = operationId
@@ -147,7 +93,7 @@ func (r *Route[BReq, BResp, HReq, HResp, P, Q]) EnableDocumentation(summary, des
 }
 
 func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DisableDocumentation() *Route[BReq, BResp, HReq, HResp, P, Q] {
-	r.Documentation.IsEnable = false
+	r.Documentation.Enable = false
 	r.Documentation.Summary = ""
 	r.Documentation.Description = ""
 	r.Documentation.OperationId = ""

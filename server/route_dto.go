@@ -29,7 +29,7 @@ type Validator struct {
 }
 
 type Documentation struct {
-	IsEnable bool
+	Enable bool
 
 	Summary     string
 	Description string

@@ -8,8 +8,47 @@ import (
 	"github.com/liraRaphael/golang-api-lib/validator"
 )
 
-func NewRoute[BReq, BResp, HReq, HResp, P, Q any](s *Server) *Route[BReq, BResp, HReq, HResp, P, Q] {
-	return &Route[BReq, BResp, HReq, HResp, P, Q]{Server: s}
+const defaultValidatorEnable = true
+const defaultDocumentationEnable = true
+
+func NewRoute[BReq, BResp, HReq, HResp, P, Q any](s *Server, bodyRequest BReq, bodyResponse BResp, headersRequest HReq, headersResponse HResp, Path P, query Q) *Route[BReq, BResp, HReq, HResp, P, Q] {
+	return &Route[BReq, BResp, HReq, HResp, P, Q]{
+		Server: s,
+		Request: Request[BReq, HReq, P, Q]{
+			BaseRequest: BaseRequest[BReq, HReq]{
+				Body:    &bodyRequest,
+				Headers: &headersRequest,
+			},
+			Queries: &query,
+			Path:    &Path,
+		},
+		Response: Response[BResp, HResp]{
+			BaseRequest: BaseRequest[BResp, HResp]{
+				Body:    &bodyResponse,
+				Headers: &headersResponse,
+			},
+		},
+		Validator: Validator{
+			RequestBody: ValidatorHandle{
+				Enable: defaultValidatorEnable,
+			},
+			RequestHeaders: ValidatorHandle{
+				Enable: defaultValidatorEnable,
+			},
+			Path: ValidatorHandle{
+				Enable: defaultValidatorEnable,
+			},
+			Queries: ValidatorHandle{
+				Enable: defaultValidatorEnable,
+			},
+		},
+		Documentation: Documentation{
+			Enable:      defaultDocumentationEnable,
+			Summary:     "",
+			Description: "",
+			OperationId: "",
+		},
+	}
 }
 
 func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefineDefaultStatusCode() int {
@@ -25,21 +64,22 @@ func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefineDefaultStatusCode() int {
 }
 
 func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefaultCallbackFiber(c *fiber.Ctx) error {
+	//ToDo: logs
 	start := time.Now()
 
 	request := RestRequest[BReq, HReq, P, Q]{
 		Context: c,
-		Body:    r.Request.Body,
-		Headers: r.Request.Headers,
-		Queries: r.Request.Queries,
-		Path:    r.Request.Path,
+		Body:    new(BReq),
+		Headers: new(HReq),
+		Queries: new(Q),
+		Path:    new(P),
 	}
 
 	// ToDo: Serealziar os campos
 
 	valitor := validator.Get()
 
-	if r.Validator.RequestBody.Enable && request.Body != nil {
+	if r.Validator.RequestBody.Enable {
 		err := valitor.Validate(request.Body)
 		if err != nil {
 			response := r.Validator.RequestBody.Handle(err)
@@ -49,7 +89,7 @@ func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefaultCallbackFiber(c *fiber.Ct
 		}
 	}
 
-	if r.Validator.RequestHeaders.Enable && request.Headers != nil {
+	if r.Validator.RequestHeaders.Enable {
 		err := valitor.Validate(request.Headers)
 		if err != nil {
 			response := r.Validator.RequestHeaders.Handle(err)
@@ -59,7 +99,7 @@ func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefaultCallbackFiber(c *fiber.Ct
 		}
 	}
 
-	if r.Validator.Path.Enable && request.Path != nil {
+	if r.Validator.Path.Enable {
 		err := valitor.Validate(request.Path)
 		if err != nil {
 			response := r.Validator.Path.Handle(err)
@@ -69,7 +109,7 @@ func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefaultCallbackFiber(c *fiber.Ct
 		}
 	}
 
-	if r.Validator.Queries.Enable && request.Queries != nil {
+	if r.Validator.Queries.Enable {
 		err := valitor.Validate(request.Queries)
 		if err != nil {
 			response := r.Validator.Queries.Handle(err)
