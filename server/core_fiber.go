@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 	"github.com/liraRaphael/golang-api-lib/environment"
+	"github.com/liraRaphael/golang-api-lib/log"
 	"github.com/liraRaphael/golang-api-lib/util"
 )
 
@@ -25,9 +26,11 @@ type Server struct {
 	healthCheckActive bool
 	healthCheckUrl    string
 
-	defaultHandleUnknowException func(report any)
+	defaultHandleUnknowException func(error)
 
-	defaultExceptionHandler map[error]func(report any)
+	defaultExceptionHandler map[error]func(error)
+
+	log log.Logging
 }
 
 func Init() *Server {
@@ -48,8 +51,10 @@ func (s *Server) loadEnvs(paths ...string) {
 	godotenv.Load(paths...)
 }
 
-func (s *Server) SetDefaultHandleUnknowException(callback func(report interface{})) {
+func (s *Server) SetDefaultHandleUnknowException(callback func(error)) *Server {
 	s.defaultHandleUnknowException = callback
+
+	return s
 }
 
 func (s *Server) loadCoreEnvs() {
@@ -60,7 +65,7 @@ func (s *Server) loadCoreEnvs() {
 	s.healthCheckUrl = environment.GetEnvValueOrDefault("HEALTHCHECK_URL", "/health/check")
 }
 
-func (s *Server) AddDefaultExceptionHandle(err error, callback func(report any)) *Server {
+func (s *Server) AddDefaultExceptionHandle(err error, callback func(error)) *Server {
 	s.defaultExceptionHandler[err] = callback
 
 	return s
@@ -70,7 +75,7 @@ func (s *Server) GetContext() *fiber.App {
 	return s.ctx
 }
 
-func (s *Server) InitEnvs() {
+func (s *Server) InitEnvs() *Server {
 	s.loadEnvs(envDefault)
 
 	if len(strings.TrimSpace(s.profile)) > 0 {
@@ -78,4 +83,24 @@ func (s *Server) InitEnvs() {
 	}
 
 	s.loadCoreEnvs()
+
+	return s
+}
+
+func (s *Server) SetOutputBodyDeserealizer(function func(any) (string, error)) *Server {
+	s.outputDefaultBodyDeserealizer = function
+
+	return s
+}
+
+func (s *Server) SetInputBodySerealizer(function func(string) (any, error)) *Server {
+	s.inputDefaultBodySerealizer = function
+
+	return s
+}
+
+func (s *Server) SetLog(log log.Logging) *Server {
+	s.log = log
+
+	return s
 }

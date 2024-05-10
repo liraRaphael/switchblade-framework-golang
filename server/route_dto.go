@@ -18,7 +18,6 @@ type Request[B, H, P, Q any] struct {
 
 type ValidatorHandle struct {
 	Enable bool
-	Handle func(report error) RestResponse[any, any]
 }
 
 type Validator struct {
@@ -44,7 +43,7 @@ type Route[BReq, BResp, HReq, HResp, P, Q any] struct {
 
 	Handle func(request RestRequest[BReq, HReq, P, Q]) (RestResponse[any, any], error)
 
-	ExceptionHandler map[error]func(report error) (RestResponse[any, any], error)
+	ExceptionHandler map[error]func(error) (RestResponse[any, any], error)
 
 	Request  Request[BReq, HReq, P, Q]
 	Response Response[BResp, HResp]
@@ -52,4 +51,7 @@ type Route[BReq, BResp, HReq, HResp, P, Q any] struct {
 	Validator Validator
 
 	Documentation Documentation
+
+	OutputDefaultBodyDeserealizer func(BResp) ([]byte, error)
+	InputDefaultBodySerealizer    func([]byte) (BReq, error)
 }

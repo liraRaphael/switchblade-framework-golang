@@ -75,6 +75,7 @@ func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefaultCallbackFiber(c *fiber.Ct
 		Path:    new(P),
 	}
 
+	reqBody, err := r.InputDefaultBodySerealizer(c.Body())
 	// ToDo: Serealziar os campos
 
 	valitor := validator.Get()
@@ -82,50 +83,35 @@ func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefaultCallbackFiber(c *fiber.Ct
 	if r.Validator.RequestBody.Enable {
 		err := valitor.Validate(request.Body)
 		if err != nil {
-			response := r.Validator.RequestBody.Handle(err)
-			DefineResponseContextFromRestResponse(c, response)
-
-			return err
+			return r.DefineErrorHandle(c, err)
 		}
 	}
 
 	if r.Validator.RequestHeaders.Enable {
 		err := valitor.Validate(request.Headers)
 		if err != nil {
-			response := r.Validator.RequestHeaders.Handle(err)
-			DefineResponseContextFromRestResponse(c, response)
-
-			return err
+			return r.DefineErrorHandle(c, err)
 		}
 	}
 
 	if r.Validator.Path.Enable {
 		err := valitor.Validate(request.Path)
 		if err != nil {
-			response := r.Validator.Path.Handle(err)
-			DefineResponseContextFromRestResponse(c, response)
-
-			return err
+			return r.DefineErrorHandle(c, err)
 		}
 	}
 
 	if r.Validator.Queries.Enable {
 		err := valitor.Validate(request.Queries)
 		if err != nil {
-			response := r.Validator.Queries.Handle(err)
-			DefineResponseContextFromRestResponse(c, response)
-
-			return err
+			return r.DefineErrorHandle(c, err)
 		}
 	}
 
 	response, err := r.Handle(request)
 
 	if err != nil {
-		responseError, errHandle := r.ExceptionHandler[err](err)
-		DefineResponseContextFromRestResponse(c, responseError)
-
-		return errHandle
+		return r.DefineErrorHandle(c, err)
 	}
 
 	if response.StatusCode == 0 {
@@ -139,7 +125,13 @@ func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefaultCallbackFiber(c *fiber.Ct
 }
 
 func DefineResponseContextFromRestResponse[B, H any](c *fiber.Ctx, response RestResponse[B, H]) {
-	//ToDo
 	c.Context().SetStatusCode(response.StatusCode)
 	c.JSON(response.Body)
+}
+
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefineErrorHandle(c *fiber.Ctx, err error) error {
+	response, errHandle := r.ExceptionHandler[err](err)
+
+	DefineResponseContextFromRestResponse(c, response)
+	return errHandle
 }

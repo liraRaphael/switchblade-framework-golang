@@ -113,12 +113,19 @@ func (r *Route[BReq, BResp, HReq, HResp, P, Q]) AddExceptionsHandle(handles map[
 	return r
 }
 
-func (r *Route[BReq, BResp, HReq, HResp, P, Q]) ListenRoute(callback func(request RestRequest[BReq, HReq, P, Q]) (RestResponse[BResp, HResp], error)) {
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) ListenRoute(callback func(request RestRequest[BReq, HReq, P, Q]) (RestResponse[BResp, HResp], error)) *Route[BReq, BResp, HReq, HResp, P, Q] {
 	r.Server.ctx.Add(r.Method, r.Endpoint, r.DefaultCallbackFiber)
+
+	// Pegar o default Deserealize
+
+	return r
 }
 
-func (r *Route[BReq, BResp, HReq, HResp, P, Q]) ListenRawRoute(callback func(c *fiber.Ctx) error) {
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) ListenRawRoute(callback func(c *fiber.Ctx) error) *Route[BReq, BResp, HReq, HResp, P, Q] {
 	r.Server.ctx.Add(r.Method, r.Endpoint, callback)
+	// ToDo default builder route
+	// Pegar o default Deserealize
+	return r
 }
 
 func (r *Route[BReq, BResp, HReq, HResp, P, Q]) AndServer() *Server {
