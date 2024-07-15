@@ -3,7 +3,7 @@ package server
 import (
 	"maps"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gin-gonic/gin"
 )
 
 type RouteBuilder[BReq, BResp, HReq, HResp, P, Q any] interface {
@@ -24,7 +24,7 @@ type RouteBuilder[BReq, BResp, HReq, HResp, P, Q any] interface {
 	ExceptionHandleValidation(err error, callback func(report any)) *Route[BReq, BResp, HReq, HResp, P, Q]
 
 	ListenRoute() *Route[BReq, BResp, HReq, HResp, P, Q]
-	ListenRawRoute(callback func(c *fiber.Ctx) error) *Route[BReq, BResp, HReq, HResp, P, Q]
+	ListenRawRoute(handle ...gin.HandlerFunc) *Route[BReq, BResp, HReq, HResp, P, Q]
 	AndServer() *Server
 }
 
@@ -114,17 +114,13 @@ func (r *Route[BReq, BResp, HReq, HResp, P, Q]) AddExceptionsHandle(handles map[
 }
 
 func (r *Route[BReq, BResp, HReq, HResp, P, Q]) ListenRoute(callback func(request RestRequest[BReq, HReq, P, Q]) (RestResponse[BResp, HResp], error)) *Route[BReq, BResp, HReq, HResp, P, Q] {
-	r.Server.ctx.Add(r.Method, r.Endpoint, r.DefaultCallbackFiber)
-
-	// Pegar o default Deserealize
-
+	r.Handle = callback
+	r.Server.ctx.Handle(r.Method, r.Endpoint, r.DefaultCallbackFiber)
 	return r
 }
 
-func (r *Route[BReq, BResp, HReq, HResp, P, Q]) ListenRawRoute(callback func(c *fiber.Ctx) error) *Route[BReq, BResp, HReq, HResp, P, Q] {
-	r.Server.ctx.Add(r.Method, r.Endpoint, callback)
-	// ToDo default builder route
-	// Pegar o default Deserealize
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) ListenRawRoute(handle ...gin.HandlerFunc) *Route[BReq, BResp, HReq, HResp, P, Q] {
+	r.Server.ctx.Handle(r.Method, r.Endpoint, handle...)
 	return r
 }
 

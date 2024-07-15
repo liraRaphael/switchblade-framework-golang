@@ -1,6 +1,8 @@
 package server
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 type RestResponse[B any, H any] struct {
 	StatusCode int
@@ -10,7 +12,7 @@ type RestResponse[B any, H any] struct {
 }
 
 type RestRequest[B any, H any, P any, Q any] struct {
-	Context *fiber.Ctx
+	Context *gin.Context
 
 	Body    *B
 	Headers *H

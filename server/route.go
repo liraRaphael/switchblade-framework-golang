@@ -2,9 +2,8 @@ package server
 
 import (
 	"strings"
-	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gin-gonic/gin"
 	"github.com/liraRaphael/golang-api-lib/validator"
 )
 
@@ -63,10 +62,7 @@ func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefineDefaultStatusCode() int {
 	return 200
 }
 
-func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefaultCallbackFiber(c *fiber.Ctx) error {
-	//ToDo: logs
-	start := time.Now()
-
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefaultCallbackFiber(c *gin.Context) {
 	request := RestRequest[BReq, HReq, P, Q]{
 		Context: c,
 		Body:    new(BReq),
@@ -75,43 +71,18 @@ func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefaultCallbackFiber(c *fiber.Ct
 		Path:    new(P),
 	}
 
-	reqBody, err := r.InputDefaultBodySerealizer(c.Body())
-	// ToDo: Serealziar os campos
+	r.bindRequester(&request)
 
-	valitor := validator.Get()
-
-	if r.Validator.RequestBody.Enable {
-		err := valitor.Validate(request.Body)
-		if err != nil {
-			return r.DefineErrorHandle(c, err)
-		}
-	}
-
-	if r.Validator.RequestHeaders.Enable {
-		err := valitor.Validate(request.Headers)
-		if err != nil {
-			return r.DefineErrorHandle(c, err)
-		}
-	}
-
-	if r.Validator.Path.Enable {
-		err := valitor.Validate(request.Path)
-		if err != nil {
-			return r.DefineErrorHandle(c, err)
-		}
-	}
-
-	if r.Validator.Queries.Enable {
-		err := valitor.Validate(request.Queries)
-		if err != nil {
-			return r.DefineErrorHandle(c, err)
-		}
+	isValid := r.findErrorByValidatorRequest(request)
+	if isValid {
+		return
 	}
 
 	response, err := r.Handle(request)
 
 	if err != nil {
-		return r.DefineErrorHandle(c, err)
+		r.DefineErrorHandle(c, err)
+		return
 	}
 
 	if response.StatusCode == 0 {
@@ -119,19 +90,75 @@ func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefaultCallbackFiber(c *fiber.Ct
 	}
 
 	DefineResponseContextFromRestResponse(c, response)
-
-	end := time.Since(start)
-	return nil
 }
 
-func DefineResponseContextFromRestResponse[B, H any](c *fiber.Ctx, response RestResponse[B, H]) {
-	c.Context().SetStatusCode(response.StatusCode)
-	c.JSON(response.Body)
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) findErrorByValidatorRequest(request RestRequest[BReq, HReq, P, Q]) bool {
+	c := request.Context
+	valitor := validator.Get()
+
+	if r.Validator.RequestBody.Enable {
+		if err := valitor.Validate(request.Body); err != nil {
+			r.DefineErrorHandle(c, err)
+			return true
+		}
+	}
+
+	if r.Validator.RequestHeaders.Enable {
+		if err := valitor.Validate(request.Headers); err != nil {
+			r.DefineErrorHandle(c, err)
+			return true
+		}
+	}
+
+	if r.Validator.Path.Enable {
+		if err := valitor.Validate(request.Path); err != nil {
+			r.DefineErrorHandle(c, err)
+			return true
+		}
+	}
+
+	if r.Validator.Queries.Enable {
+
+		if err := valitor.Validate(request.Queries); err != nil {
+			r.DefineErrorHandle(c, err)
+			return true
+		}
+	}
+	return false
 }
 
-func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefineErrorHandle(c *fiber.Ctx, err error) error {
-	response, errHandle := r.ExceptionHandler[err](err)
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) bindRequester(request *RestRequest[BReq, HReq, P, Q]) (*RestRequest[BReq, HReq, P, Q], error) {
+	c := request.Context
+
+	if err := c.Bind(request.Body); err != nil {
+		r.DefineErrorHandle(c, err)
+		return nil, err
+	}
+
+	if err := c.BindQuery(request.Queries); err != nil {
+		r.DefineErrorHandle(c, err)
+		return nil, err
+	}
+
+	if err := c.ShouldBindHeader(request.Headers); err != nil {
+		r.DefineErrorHandle(c, err)
+		return nil, err
+	}
+
+	if err := c.ShouldBindUri(request.Path); err != nil {
+		r.DefineErrorHandle(c, err)
+		return nil, err
+	}
+
+	return request, nil
+}
+
+func DefineResponseContextFromRestResponse[B, H any](c *gin.Context, response RestResponse[B, H]) {
+	c.JSON(response.StatusCode, response.Body)
+}
+
+func (r *Route[BReq, BResp, HReq, HResp, P, Q]) DefineErrorHandle(c *gin.Context, err error) {
+	response, _ := r.ExceptionHandler[err](err)
 
 	DefineResponseContextFromRestResponse(c, response)
-	return errHandle
 }

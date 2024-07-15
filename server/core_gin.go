@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/liraRaphael/golang-api-lib/environment"
 	"github.com/liraRaphael/golang-api-lib/log"
@@ -18,7 +18,7 @@ const (
 )
 
 type Server struct {
-	ctx *fiber.App
+	ctx *gin.Engine
 
 	profile string
 	port    string
@@ -35,7 +35,7 @@ type Server struct {
 
 func Init() *Server {
 	server := &Server{
-		ctx: fiber.New(),
+		ctx: gin.Default(),
 	}
 
 	return server
@@ -43,8 +43,9 @@ func Init() *Server {
 
 func (s *Server) Run() {
 	s.InitEnvs()
+	s.ctx.Use(gin.Recovery())
 
-	s.ctx.Listen(fmt.Sprintf(anddressFormat, s.port))
+	s.ctx.Run()
 }
 
 func (s *Server) loadEnvs(paths ...string) {
@@ -71,7 +72,7 @@ func (s *Server) AddDefaultExceptionHandle(err error, callback func(error)) *Ser
 	return s
 }
 
-func (s *Server) GetContext() *fiber.App {
+func (s *Server) GetContext() *gin.Engine {
 	return s.ctx
 }
 
@@ -83,18 +84,6 @@ func (s *Server) InitEnvs() *Server {
 	}
 
 	s.loadCoreEnvs()
-
-	return s
-}
-
-func (s *Server) SetOutputBodyDeserealizer(function func(any) (string, error)) *Server {
-	s.outputDefaultBodyDeserealizer = function
-
-	return s
-}
-
-func (s *Server) SetInputBodySerealizer(function func(string) (any, error)) *Server {
-	s.inputDefaultBodySerealizer = function
 
 	return s
 }

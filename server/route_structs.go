@@ -41,7 +41,7 @@ type Route[BReq, BResp, HReq, HResp, P, Q any] struct {
 	Endpoint string
 	Method   string
 
-	Handle func(request RestRequest[BReq, HReq, P, Q]) (RestResponse[any, any], error)
+	Handle func(request RestRequest[BReq, HReq, P, Q]) (RestResponse[BResp, HResp], error)
 
 	ExceptionHandler map[error]func(error) (RestResponse[any, any], error)
 
@@ -53,5 +53,4 @@ type Route[BReq, BResp, HReq, HResp, P, Q any] struct {
 	Documentation Documentation
 
 	OutputDefaultBodyDeserealizer func(BResp) ([]byte, error)
-	InputDefaultBodySerealizer    func([]byte) (BReq, error)
 }
